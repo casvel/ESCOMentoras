@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using DotNetCoreSqlDb.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DotNetCoreSqlDb.Controllers
 {
@@ -18,6 +19,7 @@ namespace DotNetCoreSqlDb.Controllers
             return View();
         }
 
+        [Authorize(Roles = ("Administrator"))]
         public IActionResult Privacy()
         {
             return View();
