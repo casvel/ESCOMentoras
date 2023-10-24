@@ -3,6 +3,8 @@ using DotNetCoreSqlDb.Data;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web.UI;
 using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,9 +21,12 @@ builder.Services
     .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
-builder.Services.Configure<CookiePolicyOptions>(options =>
+builder.Services.AddControllersWithViews(options =>
 {
-    options.Secure = CookieSecurePolicy.Always;
+    var policy = new AuthorizationPolicyBuilder()
+              .RequireAuthenticatedUser()
+              .Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
 });
 
 // Add services to the container.
