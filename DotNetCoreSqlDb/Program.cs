@@ -18,16 +18,9 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 
 builder.Services
-    .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddAuthentication(AppServicesAuthenticationDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
-builder.Services.AddControllersWithViews(options =>
-{
-    var policy = new AuthorizationPolicyBuilder()
-              .RequireAuthenticatedUser()
-              .Build();
-    options.Filters.Add(new AuthorizeFilter(policy));
-});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
