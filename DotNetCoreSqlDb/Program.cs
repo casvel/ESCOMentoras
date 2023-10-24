@@ -21,7 +21,7 @@ builder.Services
 builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    options.Secure = CookieSecurePolicy.SameAsRequest;
+    options.Secure = CookieSecurePolicy.Always;
 });
 
 // Add services to the container.
