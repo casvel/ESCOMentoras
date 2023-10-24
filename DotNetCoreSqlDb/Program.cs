@@ -19,6 +19,10 @@ builder.Services
     .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.Secure = CookieSecurePolicy.SameAsRequest;
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
