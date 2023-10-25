@@ -7,6 +7,8 @@
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
 
+<p>@User.Identity.Name is in role Administrator: @User.IsInRole("Administrator")</p>
+
 @if (User.Identity.IsAuthenticated)
 {
     <div>

@@ -15,14 +15,42 @@ namespace DotNetCoreSqlDb.Controllers
     [ActionTimerFilter]
     public class TodosController : Controller
     {
+        private readonly ILogger _logger;
         private readonly MyDatabaseContext _context;
         private readonly IDistributedCache _cache;
         private readonly string _TodoItemsCacheKey = "TodoItemsList";
 
-        public TodosController(MyDatabaseContext context, IDistributedCache cache)
+        public TodosController(MyDatabaseContext context, IDistributedCache cache, ILogger<TodosController> logger)
         {
             _context = context;
             _cache = cache;
+            _logger = logger;
+        }
+
+        // GET: Todos
+        [HttpGet]
+        [Route("Todos")]
+        [Constraints.ContainsHeader("Accept", "application/json")]
+        public async Task<IActionResult> Todos(long lastSyncTime = -1, int from = 0, int to = -1)
+        {
+            _logger.LogInformation("Query params: lastSyncTime:{lastSyncTime} from:{from} to:{to}", lastSyncTime, from, to);
+
+            var todos = new List<Todo>();
+            byte[]? TodoListByteArray;
+
+            TodoListByteArray = await _cache.GetAsync(_TodoItemsCacheKey);
+            if (TodoListByteArray != null && TodoListByteArray.Length > 0)
+            {
+                todos = ConvertData<Todo>.ByteArrayToObjectList(TodoListByteArray);
+            }
+            else
+            {
+                todos = await _context.Todo.ToListAsync();
+                TodoListByteArray = ConvertData<Todo>.ObjectListToByteArray(todos);
+                await _cache.SetAsync(_TodoItemsCacheKey, TodoListByteArray);
+            }
+
+            return Json(todos);
         }
 
         // GET: Todos
