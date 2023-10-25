@@ -8,6 +8,16 @@ builder.Services.AddDbContext<MyDatabaseContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")));
 //builder.Services.AddDbContext<MyDatabaseContext>(options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING_LOCAL")));
+if (!builder.Environment.IsDevelopment())
+{
+    // Add Redis cache only for non-development
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration["AZURE_REDIS_CONNECTIONSTRING"];
+        options.InstanceName = "ESCOMentoras";
+    });
+}
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -20,13 +30,6 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    // Add Redis cache only for non-development
-    builder.Services.AddStackExchangeRedisCache(options =>
-    {
-        options.Configuration = builder.Configuration["AZURE_REDIS_CONNECTIONSTRING"];
-        options.InstanceName = "ESCOMentoras";
-    });
-
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     // app.UseHsts();
