@@ -19,10 +19,16 @@ namespace DotNetCoreSqlDb.Controllers
             return View();
         }
 
-        [Authorize(Roles = ("Administrator"))]
         public IActionResult Privacy()
         {
-            return View();
+            if (!User.IsInRole("Administrator"))
+            {
+                return Unauthorized();
+            }
+            else
+            {
+                return View();
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
