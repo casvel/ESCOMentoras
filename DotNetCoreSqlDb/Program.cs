@@ -1,10 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using DotNetCoreSqlDb.Data;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Identity.Web.UI;
-using Microsoft.Identity.Web;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
+using DotNetCoreSqlDb.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +13,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "ESCOMentoras";
 });
 
-builder.Services
-    .AddAuthentication(AppServicesAuthenticationDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
-builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -40,7 +33,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseCookiePolicy();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -48,6 +40,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Todos}/{action=Index}/{id?}");
-app.MapRazorPages();
 
 app.Run();
