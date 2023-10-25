@@ -1,5 +1,3 @@
-using System.Security.Policy;
-
 namespace DotNetCoreSqlDb.Models
 {
     public class ErrorViewModel
