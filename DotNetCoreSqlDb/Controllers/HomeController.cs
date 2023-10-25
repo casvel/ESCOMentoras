@@ -21,7 +21,14 @@ namespace DotNetCoreSqlDb.Controllers
 
         public IActionResult Privacy()
         {
-            return View();
+            if (!User.IsInRole("Administrator"))
+            {
+                return Unauthorized();
+            }
+            else
+            {
+                return View();
+            }
         }
 
         [Authorize(Roles = ("Administrator"))]
