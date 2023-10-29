@@ -6,14 +6,17 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web.UI;
 using Microsoft.Identity.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using DotNetCoreSqlDb.Hubs;
+using Microsoft.Extensions.Primitives;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add database context and cache
 builder.Services.AddDbContext<MyDatabaseContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")));
-//builder.Services.AddDbContext<MyDatabaseContext>(options =>
+//builder.Services.AddDbContext<MyDatabaseContext>(options => 
   //  options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING_LOCAL")));
+
 if (!builder.Environment.IsDevelopment())
 {
     // Add Redis cache only for non-development
@@ -24,11 +27,28 @@ if (!builder.Environment.IsDevelopment())
     });
 }
 
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+  .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAdToken"));
+builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    var existingOnMessageReceivedHandler = options.Events.OnMessageReceived;
+    options.Events.OnMessageReceived = async context =>
+    {
+        await existingOnMessageReceivedHandler(context);
 
-builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-          .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+        StringValues accessToken = context.Request.Headers.Authorization;
+        PathString path = context.HttpContext.Request.Path;
+
+        // If the request is for our hub...
+        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chat"))
+        {
+            // Read the token out of the Authorization header
+            context.Token = accessToken;
+        }
+    };
+});
 
 builder.Services.AddControllersWithViews(options =>
 {
@@ -38,8 +58,7 @@ builder.Services.AddControllersWithViews(options =>
               .Build();
     options.Filters.Add(new AuthorizeFilter(policy));
 });
-
-builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
+builder.Services.AddRazorPages();
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.Secure = CookieSecurePolicy.Always;
@@ -47,6 +66,8 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 
 // Add App Service logging
 builder.Logging.AddAzureWebAppDiagnostics();
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -64,6 +85,7 @@ app.UseCookiePolicy();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 // Customize the authentication challenge behavior to return a 401 status code.
 app.Use(async (context, next) =>
@@ -83,5 +105,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Todos}/{action=Index}/{id?}");
 app.MapRazorPages();
+app.MapHub<ChatHub>("/chat");
 
 app.Run();
