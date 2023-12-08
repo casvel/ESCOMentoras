@@ -12,10 +12,10 @@ using Microsoft.Extensions.Primitives;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add database context and cache
-builder.Services.AddDbContext<MyDatabaseContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")));
-//builder.Services.AddDbContext<MyDatabaseContext>(options => 
-  //  options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING_LOCAL")));
+//builder.Services.AddDbContext<MyDatabaseContext>(options =>
+  //  options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")));
+builder.Services.AddDbContext<MyDatabaseContext>(options => 
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING_LOCAL")));
 
 if (!builder.Environment.IsDevelopment())
 {
@@ -71,6 +71,12 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
+    db.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -103,8 +109,9 @@ app.Use(async (context, next) =>
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Todos}/{action=Index}/{id?}");
+    pattern: "{controller=Profiles}/{action=Index}/{id?}");
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chat");
+app.MapHub<NotificationsHub>("/notifications");
 
 app.Run();
