@@ -103,8 +103,9 @@ app.Use(async (context, next) =>
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Todos}/{action=Index}/{id?}");
+    pattern: "{controller=Profiles}/{action=Index}/{id?}");
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chat");
+app.MapHub<NotificationsHub>("/notifications");
 
 app.Run();

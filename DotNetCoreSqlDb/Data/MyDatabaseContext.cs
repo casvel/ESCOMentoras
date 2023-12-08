@@ -14,6 +14,17 @@ namespace DotNetCoreSqlDb.Data
         {
         }
 
-        public DbSet<DotNetCoreSqlDb.Models.Todo> Todo { get; set; } = default!;
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<Profile>()
+                .Property(e => e.State)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (ProfileState)Enum.Parse(typeof(ProfileState), v));
+        }
+
+        public DbSet<Todo> Todo { get; set; } = default!;
+        public DbSet<Profile> Profile { get; set; } = default!;
     }
 }
